@@ -60,8 +60,14 @@ async fn owner_updates_profile_and_it_is_audited(pool: PgPool) {
     assert_eq!(r.status, 200, "{}", r.json());
     let p = &r.json()["data"]["profile"];
     assert_eq!(p["name"], "Warung Bu Sri");
-    assert_eq!(p["phone"], "+6281234567890", "dinormalisasi");
-    assert_eq!(p["email"], "halo@warung.id");
+    // Sejak migrasi 0042, `business_profiles.phone` menyimpan digit kanonik TANPA `+`
+    // (`normalize_phone_id`), berbeda dari `customers.phone` yang tetap E.164 dengan `+`.
+    assert_eq!(p["phone"], "6281234567890", "dinormalisasi tanpa +");
+    assert_eq!(
+        p["whatsapp"], "081234567890",
+        "lokal dipertahankan apa adanya"
+    );
+    assert_eq!(p["email"], "halo@warung.id", "email di-lowercase");
     assert_eq!(p["pickup_available"], true);
     assert_eq!(p["fulfillment_note"], "Ambil di kasir");
     let n: i64 = sqlx::query_scalar(

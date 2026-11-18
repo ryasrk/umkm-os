@@ -401,7 +401,9 @@ async fn article_page_has_its_own_seo_and_is_in_the_sitemap(pool: PgPool) {
     )
     .unwrap();
     assert!(
-        html.contains("<title>Cara seduh kopi — Kopi &lt;Senja&gt;</title>"),
+        // Judul halaman artikel = "{headline} - {nama toko} - UMKM OS" (pemisah "-" dan sufiks
+        // brand, sama dengan halaman website biasa; lihat build_meta di site_head.rs).
+        html.contains("<title>Cara seduh kopi - Kopi &lt;Senja&gt; - UMKM OS</title>"),
         "{html}"
     );
     assert!(
