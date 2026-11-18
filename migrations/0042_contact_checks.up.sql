@@ -63,8 +63,11 @@ ALTER TABLE customers
         )
     ),
     -- E.164: "+62…" (tanpa "+" tidak sah — kolom ini diisi `normalize_phone_e164`).
+    -- Panjang: `normalize_phone_e164` menerima 7–15 digit total termasuk "62" (lihat crm.rs),
+    -- jadi setelah "+62" tersisa 5–13 digit. Angka ini SENGAJA lebih longgar daripada kolom
+    -- `business_profiles` (9–15 digit) karena keduanya memakai normalizer berbeda.
     ADD CONSTRAINT ck_customers_phone CHECK (
-        phone IS NULL OR phone ~ '^\+62[0-9]{8,14}$'
+        phone IS NULL OR phone ~ '^\+62[0-9]{5,13}$'
     );
 
 -- ---------------------------------------------------------------------------
@@ -129,5 +132,5 @@ ALTER TABLE orders
         )
     ),
     ADD CONSTRAINT ck_orders_customer_phone CHECK (
-        customer_phone IS NULL OR customer_phone ~ '^\+62[0-9]{8,14}$'
+        customer_phone IS NULL OR customer_phone ~ '^\+62[0-9]{5,13}$'
     );
