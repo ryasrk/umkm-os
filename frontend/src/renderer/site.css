@@ -416,15 +416,17 @@
 }
 .sf-legal { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-right: auto; }
 .sf-made { display: flex; justify-content: center; margin-top: 18px; }
+/* --pg-bg (bukan --s-bg): token ikut permukaan tema (di luar .sv2 tetap putih), sehingga pil tidak
+   putih pekat di tema gelap. Bug yang sama dengan bilah navigasi (lihat .s-headbar). */
 .sf-made > a, .sf-made > span {
   display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px;
-  border: 1px solid var(--s-line, #e4e4e7); background: var(--s-bg); color: var(--s-muted, #63636e);
+  border: 1px solid var(--s-line, #e4e4e7); background: var(--pg-bg, var(--s-bg, #fff)); color: var(--s-muted, #63636e);
   font-size: 0.75rem; line-height: 1; text-decoration: none;
 }
 .sf-made strong { color: var(--s-ink, #18181b); font-weight: 600; }
 .sf-made-mark {
   display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 6px;
-  background: var(--s-ink, #18181b); color: var(--s-bg, #fff); font-size: 0.6875rem; font-weight: 700;
+  background: var(--s-ink, #18181b); color: var(--pg-bg, #fff); font-size: 0.6875rem; font-weight: 700;
 }
 @media (hover: hover) {
   .sv2-foot a:hover { color: var(--s-ink, #18181b); text-decoration: underline; }
