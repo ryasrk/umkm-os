@@ -38,6 +38,10 @@ export function PageSettings({ seo, article, onSeo, onArticle, upload, assetUrl,
         <span className="st-row-between"><span>{tx("Deskripsi di Google")}</span><small className="d-muted">{(s.description ?? "").length}/160</small></span>
         <textarea id="seo-description" rows={3} maxLength={160} value={s.description ?? ""} placeholder={tx("1–2 kalimat yang membuat orang ingin mengklik.")} onChange={(e) => onSeo({ ...s, description: e.target.value })} />
       </label>
+      <label className="d-field">
+        <span className="st-row-between"><span>{tx("Kata kunci (SEO)")}</span><small className="d-muted">{(s.keywords ?? "").length}/200</small></span>
+        <input maxLength={200} value={s.keywords ?? ""} placeholder={tx("mis. kopi susu, kedai kopi bandung")} onChange={(e) => onSeo({ ...s, keywords: e.target.value })} />
+      </label>
       <div className="d-field">
         <span>{tx("Gambar saat dibagikan (WhatsApp, Facebook)")}</span>
         <div className="d-row">

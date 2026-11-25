@@ -242,6 +242,8 @@ export const APP_4: Record<string, string> = {
   "Jenis halaman": "Page type",
   "Judul artikel contoh {0}": "Sample article title {0}",
   "Judul di Google": "Title on Google",
+  "Kata kunci (SEO)": "Keywords (SEO)",
+  "mis. kopi susu, kedai kopi bandung": "e.g. coffee milk, coffee shop bandung",
   "Judul, ringkasan, sampul, penulis, dan tanggal artikel diatur di Halaman › Pengaturan halaman.": "The article's title, summary, cover, author and date are set in Pages › Page settings.",
   "Jumlah artikel": "Number of articles",
   "Kartu artikel terbaru dari halaman artikel Anda, otomatis urut terbaru.": "Cards for your latest article pages, sorted newest first automatically.",

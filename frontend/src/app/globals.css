@@ -136,6 +136,9 @@
 
   --shell-sidebar: 248px;
   --topbar-h: 56px;
+  /* Tablet PoS (Android, 7–11"): area sentuh & huruf sedikit lebih besar tanpa mengubah
+     tata letak dasbor; dipicu pointer coarse (layar sentuh) pada lebar tablet 600–1279px. */
+  --shell-sidebar-tablet: 264px;
   --content-max: 1180px;
 
   color-scheme: light;
@@ -425,6 +428,24 @@ kbd, .d-kbd {
 @media (min-width: 1024px) {
   .d-burger { display: none; }
   .d-topbar, .d-main { margin-left: var(--shell-sidebar); }
+}
+
+/* ============================================================
+   Tablet PoS (Android) — 600–1279px + layar sentuh: banyak tenant pakai
+   tablet sebagai perangkat PoS. Sidebar tetap tampil (≥1024) dengan kolom
+   sedikit lebih lebar & nav lebih tinggi agar mudah disentuh; di 600–1023
+   (tablet potret) nav drawer + target sentuh besar.
+   ============================================================ */
+@media (pointer: coarse) and (min-width: 600px) and (max-width: 1279px) {
+  .d-nav { height: 44px; }
+  .d-nav svg { width: 20px; height: 20px; }
+  .d-burger { width: 44px; height: 44px; }
+  .d-burger svg { width: 20px; height: 20px; }
+  .d-main { padding: var(--sp-6) var(--sp-6) var(--sp-10); }
+}
+@media (pointer: coarse) and (min-width: 1024px) and (max-width: 1279px) {
+  .d-sidebar { width: var(--shell-sidebar-tablet); }
+  .d-topbar, .d-main { margin-left: var(--shell-sidebar-tablet); }
 }
 
 /* Konten utama */

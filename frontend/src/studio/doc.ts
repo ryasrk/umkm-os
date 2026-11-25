@@ -11,7 +11,7 @@ import { onColor } from "@/renderer/safe";
 import type { CellStyle, PluginKind } from "./plugins";
 import type { TplCell } from "./templates";
 
-export interface StudioSeo { title?: string; description?: string; image?: string; favicon?: string }
+export interface StudioSeo { title?: string; description?: string; image?: string; favicon?: string; keywords?: string }
 export interface StudioState {
   primary: string;
   /** Warna teks di atas warna utama; dari palet atau diturunkan saat fromDoc (tidak masuk dokumen server). */

@@ -84,7 +84,7 @@ function block(raw: unknown, index: number, taken: Set<string>): BlockV2 | null 
 function seo(raw: unknown): PageV2["seo"] {
   if (!isObj(raw)) return undefined;
   const out: NonNullable<PageV2["seo"]> = {};
-  for (const k of ["title", "description", "image", "favicon"] as const) {
+  for (const k of ["title", "description", "image", "favicon", "keywords"] as const) {
     const v = str(raw[k]);
     if (v) out[k] = v;
   }

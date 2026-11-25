@@ -66,6 +66,8 @@ pub struct HeadMeta {
     pub image: Option<String>,
     pub favicon: Option<String>,
     pub json_ld: Option<Value>,
+    /// `<meta name="keywords">` — dipisahkan koma oleh pemilik toko (SEO klasik; juga JSON-LD).
+    pub keywords: Option<String>,
 }
 
 /// Escape untuk teks & nilai atribut HTML (dikutip ganda).
@@ -133,13 +135,49 @@ pub fn render_head(m: &HeadMeta) -> String {
             h.push_str(&format!("<meta property=\"{p}\" content=\"{}\">", esc(v)));
         }
     }
+    if let Some(kw) = m.keywords.as_deref().filter(|k| !k.trim().is_empty()) {
+        h.push_str(&format!("<meta name=\"keywords\" content=\"{}\">", esc(kw)));
+    }
     if let Some(img) = &m.image {
         h.push_str(&format!(
             "<meta property=\"og:image\" content=\"{}\">",
             esc(img)
         ));
+        // Dimensi & tipe eksplisit: sebagian crawler (Discord, LinkedIn) butuh ini untuk
+        // pratinjau gambar yang benar; WhatsApp cukup og:image + twitter:card.
+        h.push_str("<meta property=\"og:image:width\" content=\"1280\">");
+        h.push_str("<meta property=\"og:image:height\" content=\"630\">");
+        h.push_str(&format!(
+            "<meta property=\"og:image:alt\" content=\"{}\">",
+            esc(&m.title)
+        ));
+        // Twitter Card lengkap (judul/deskripsi/gambar) — dipakai X & sebagian aplikasi lain.
+        h.push_str(&format!(
+            "<meta name=\"twitter:title\" content=\"{}\">",
+            esc(&m.title)
+        ));
+        if !m.description.is_empty() {
+            h.push_str(&format!(
+                "<meta name=\"twitter:description\" content=\"{}\">",
+                esc(&m.description)
+            ));
+        }
+        h.push_str(&format!(
+            "<meta name=\"twitter:image\" content=\"{}\">",
+            esc(img)
+        ));
         h.push_str("<meta name=\"twitter:card\" content=\"summary_large_image\">");
     } else {
+        h.push_str(&format!(
+            "<meta name=\"twitter:title\" content=\"{}\">",
+            esc(&m.title)
+        ));
+        if !m.description.is_empty() {
+            h.push_str(&format!(
+                "<meta name=\"twitter:description\" content=\"{}\">",
+                esc(&m.description)
+            ));
+        }
         h.push_str("<meta name=\"twitter:card\" content=\"summary\">");
     }
     if let Some(f) = &m.favicon {
@@ -627,6 +665,13 @@ async fn build_meta(
             ld["offers"] = json!({"@type": "Offer", "price": pr, "priceCurrency": "IDR",
                 "availability": if v.available { "https://schema.org/InStock" } else { "https://schema.org/OutOfStock" }});
         }
+        // Keywords: meta halaman (v1) → toko → nama produk sebagai kata kunci terakhir.
+        let product_kw = page_str("keywords")
+            .or_else(|| seo_str("keywords"))
+            .map(|k| format!("{k}, {}", v.name));
+        if let Some(k) = product_kw.as_deref().filter(|k| !k.trim().is_empty()) {
+            ld["keywords"] = json!(k);
+        }
         return Ok(Some(HeadMeta {
             title: format!("{} - {name} - UMKM OS", v.name),
             description: clip(v.description.as_deref().unwrap_or(&store_desc), 160),
@@ -636,6 +681,7 @@ async fn build_meta(
             image,
             favicon,
             json_ld: Some(ld),
+            keywords: product_kw,
         }));
     }
 
@@ -693,6 +739,21 @@ async fn build_meta(
                 local_business(&biz, &site_url, store_image.as_deref()),
             )
         };
+        // Keywords halaman → tag artikel → keywords toko.
+        let page_kw = page_str("keywords")
+            .or_else(|| {
+                article
+                    .as_ref()
+                    .and_then(|a| a.get("tags"))
+                    .and_then(Value::as_array)
+                    .map(|tags| {
+                        tags.iter()
+                            .filter_map(Value::as_str)
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    })
+            })
+            .or_else(|| seo_str("keywords"));
         return Ok(Some(HeadMeta {
             title: format!("{headline} - {name} - UMKM OS"),
             description: clip(&desc, 160),
@@ -702,12 +763,18 @@ async fn build_meta(
             image,
             favicon,
             json_ld: Some(ld),
+            keywords: page_kw,
         }));
     }
 
     let title = seo_str("title").unwrap_or_else(|| format!("{name} - UMKM OS"));
+    let home_kw = seo_str("keywords");
+    let mut ld = local_business(&biz, &site_url, store_image.as_deref());
+    if let Some(k) = home_kw.as_deref().filter(|k| !k.trim().is_empty()) {
+        ld["keywords"] = json!(k);
+    }
     Ok(Some(HeadMeta {
-        json_ld: Some(local_business(&biz, &site_url, store_image.as_deref())),
+        json_ld: Some(ld),
         title,
         description: clip(&store_desc, 160),
         url,
@@ -715,6 +782,7 @@ async fn build_meta(
         og_type: "website",
         image: store_image,
         favicon,
+        keywords: home_kw,
     }))
 }
 
@@ -821,6 +889,7 @@ mod tests {
             image: Some("https://api.example/f/1?sig=a&b=c".into()),
             favicon: None,
             json_ld: Some(json!({"name": "</script><script>alert(1)</script>"})),
+            keywords: Some("kopi, kedai <b>kopi</b> & roti".into()),
         }
     }
 
@@ -835,6 +904,14 @@ mod tests {
         assert!(h.contains("\\u003c/script\\u003e"));
         assert!(!h.contains("<script>alert"));
         assert!(h.contains("twitter:card\" content=\"summary_large_image\""));
+        // Keywords meta di-escape seperti atribut lain; OG/Twitter lengkap untuk Discord/X.
+        assert!(h.contains(
+            "name=\"keywords\" content=\"kopi, kedai &lt;b&gt;kopi&lt;/b&gt; &amp; roti\""
+        ));
+        assert!(h.contains("og:image:alt\" content=\"Kopi &quot;Senja&quot; &lt;/title&gt;&lt;script&gt;alert(1)&lt;/script&gt;\""));
+        assert!(h.contains("og:image:width\" content=\"1280\""));
+        assert!(h.contains("twitter:image\" content=\"https://api.example/f/1?sig=a&amp;b=c\""));
+        assert!(h.contains("twitter:title\" content=\"Kopi &quot;Senja&quot; &lt;/title&gt;&lt;script&gt;alert(1)&lt;/script&gt;\""));
     }
 
     #[test]
